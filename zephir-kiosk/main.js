@@ -96,6 +96,49 @@ http.createServer((req, res) => {
   }
 }).listen(5002);
 
+function sendKeystrokes(text) {
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    win.webContents.sendInputEvent({ type: 'char', keyCode: char });
+  }
+}
+
+expressApp.get('/textInput', (req, res) => {
+  const inputText = req.query.input || ''; // Get the input text from the query parameter
+  sendKeystrokes(inputText);
+  res.send('Keystrokes emulated');
+});
+
+expressApp.get('/selectElement', (req, res) => {
+  const className = req.query.class || ''; // Get the class name from the query parameter
+  const sanitizedClassName = className.replace(/"/g, '\\"'); // Sanitize the class name to escape quotes
+  
+  // Execute JavaScript to find the element by class and click it
+  win.webContents.executeJavaScript(`
+    const element = document.querySelector('.${sanitizedClassName.split(' ').join('.')}');
+    if (element) {
+      element.click();
+    }
+  `).then(() => {
+    res.send('Element selected and clicked');
+  }).catch(err => {
+    res.send(`Failed to select and click element: ${err}`);
+  });
+});
+
+expressApp.get('/executeJS', (req, res) => {
+  const jsCode = req.query.code || ''; // Get the JavaScript code from the query parameter
+  
+  // Execute the provided JavaScript code
+  win.webContents.executeJavaScript(jsCode)
+    .then(result => {
+      res.send(`JavaScript executed. Result: ${result}`);
+    })
+    .catch(err => {
+      res.send(`Failed to execute JavaScript: ${err}`);
+    });
+});
+
 expressApp.get('/updatePosition', (req, res) => {
   const x = parseInt(req.query.x);
   const y = parseInt(req.query.y);
