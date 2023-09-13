@@ -158,6 +158,39 @@ expressApp.get('/executeJS', (req, res) => {
     });
 });
 
+expressApp.get('/rpc', (req, res) => {
+  const params = new URLSearchParams(req.query);
+  const method = params.get('method') || '';
+  const arg = params.get('arg') || '';
+  const state = params.get('state') || '';
+
+  // Execute JavaScript to make the RPC call
+  win.webContents.executeJavaScript(`
+    (async () => {
+      try {
+        const response = await fetch("/rpc", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ method: "${method}", arg: "${arg}", state: "${state}" }),
+        });
+        const data = await response.json();
+        return 'RPC call successful: ' + JSON.stringify(data);
+      } catch (error) {
+        return 'RPC call failed: ' + error.toString();
+      }
+    })()
+  `).then(result => {
+    writeLog(result);
+    res.send(result);
+  }).catch(err => {
+    const errorMessage = `Failed to make RPC call: ${err}`;
+    writeLog(errorMessage);
+    res.send(errorMessage);
+  });
+});
+
 expressApp.get('/updatePosition', (req, res) => {
   const x = parseInt(req.query.x);
   const y = parseInt(req.query.y);
