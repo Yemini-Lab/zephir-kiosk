@@ -1,5 +1,6 @@
 # ZephIR-KIOSK
-Minimal electron browser for embedding in NeuroPAL_ID. This is not for general use, it's a hacky workaround for a niche problem that Mathworks will hopefully solve for us someday.
+Minimal electron browser for embedding in [NeuroPAL_ID](https://github.com/Yemini-Lab/NeuroPAL_ID).   
+This is not for general use, it's a hacky workaround for a niche problem that Mathworks will hopefully solve for us someday.
 
 ## Background
 ZephIR-KIOSK is a javascript application we developed to allow us to pseudo-embed web pages in MATLAB uifigures. Ideally this will eventually be replaced by an expanded web() call or analogous AppDesigner component Mathworks develops sometime in the future. Structurally it's essentially a minimal electron browser with some custom end points that allow us to manipulate browser input and page-based js code execution from within MATLAB.
