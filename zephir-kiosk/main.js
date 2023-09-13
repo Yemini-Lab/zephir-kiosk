@@ -1,4 +1,5 @@
 const yargs = require('yargs/yargs');
+const fs = require('fs');
 const { hideBin } = require('yargs/helpers');
 const { app, BrowserWindow } = require('electron');
 const http = require('http');
@@ -96,6 +97,14 @@ http.createServer((req, res) => {
   }
 }).listen(5002);
 
+function writeLog(message) {
+  fs.appendFile('log.txt', `${new Date().toISOString()} - ${message}\n`, (err) => {
+    if (err) {
+      console.error(`Failed to write to log.txt: ${err}`);
+    }
+  });
+}
+
 function sendKeystrokes(text) {
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
@@ -115,14 +124,24 @@ expressApp.get('/selectElement', (req, res) => {
   
   // Execute JavaScript to find the element by class and click it
   win.webContents.executeJavaScript(`
-    const element = document.querySelector('.${sanitizedClassName.split(' ').join('.')}');
-    if (element) {
-      element.click();
+    try {
+      const element = document.querySelector('.${sanitizedClassName.split(' ').join('.')}');
+      let result = 'Element not found';
+      if (element) {
+        element.click();
+        result = 'Element clicked';
+      }
+      result;
+    } catch (error) {
+      'JavaScript error: ' + error.toString();
     }
-  `).then(() => {
-    res.send('Element selected and clicked');
+  `).then(result => {
+    writeLog(result);
+    res.send(result);
   }).catch(err => {
-    res.send(`Failed to select and click element: ${err}`);
+    const errorMessage = `Failed to select and click element: ${err}`;
+    writeLog(errorMessage);
+    res.send(errorMessage);
   });
 });
 
